@@ -5,6 +5,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.elasticsearch.common.StopWatch;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -32,21 +33,20 @@ public class Test {
                 .build();
 
 
-        ArrayList<Mono<JsonNode>> monos = new ArrayList<>();
-        ArrayList<Long> starts = new ArrayList<>();
-        ArrayList<Long> stops = new ArrayList<>();
+        ArrayList<Mono<?>> monos = new ArrayList<>();
         WebClient webClient1 = WebClient.create();
-        for (int i = 0; i <10; i++) {
+        for (int i = 0; i <10000; i++) {
             StopWatch stopWatch = new StopWatch("req " + i);
             stopWatch.start();
-            Mono<JsonNode> mono = webClient1.get()
-                    .uri("http://localhost:8109/health_chk")
-                    .accept(MediaType.APPLICATION_JSON)
+            Mono<String> mono = webClient1.get()
+//                    .uri("http://localhost:8109/health_chk")
+                    .uri("http://www.baidu.com")
+                    .accept(MediaType.ALL)
                     .retrieve()
-                    .bodyToMono(JsonNode.class)
-                    .doAfterSuccessOrError(new BiConsumer<JsonNode, Throwable>() {
+                    .bodyToMono(String.class)
+                    .doAfterSuccessOrError(new BiConsumer<Object, Throwable>() {
                         @Override
-                        public void accept(JsonNode jsonNode, Throwable throwable) {
+                        public void accept(Object body, Throwable throwable) {
                             stopWatch.stop();
                             System.out.println(stopWatch.toString()+stopWatch.lastTaskTime());
                         }
@@ -55,9 +55,9 @@ public class Test {
         }
         Flux.merge(monos).subscribe();
 
-        TimeUnit.SECONDS.sleep(1L);
+        TimeUnit.MILLISECONDS.sleep(100L);
         long t1 = System.nanoTime();
-        JsonNode block = WebClient.create().get().uri("http://localhost:8109/health_chk").retrieve().bodyToMono(JsonNode.class).block();
+        String block = WebClient.create().get().uri("http://www.baidu.com").accept(MediaType.ALL).retrieve().bodyToMono(String.class).block();
         long t2 = System.nanoTime();
         System.out.println("single req cost time "+(t2-t1));
 
