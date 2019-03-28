@@ -55,12 +55,14 @@ public class Test {
         }
         Flux.merge(monos).subscribe();
 
-        TimeUnit.MILLISECONDS.sleep(100L);
+        TimeUnit.MILLISECONDS.sleep(10L);
         long t1 = System.nanoTime();
         String block = WebClient.create().get().uri("http://www.baidu.com").accept(MediaType.ALL).retrieve().bodyToMono(String.class).block();
         long t2 = System.nanoTime();
         System.out.println("single req cost time "+(t2-t1));
 
         System.out.println();
+
+
     }
 }
